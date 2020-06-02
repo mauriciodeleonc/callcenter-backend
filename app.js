@@ -4,6 +4,7 @@ const app = require('express')();
 const http = require('http').createServer(app);
 var io = require('socket.io')(http);
 const fetch = require('node-fetch');
+const PORT = process.env.PORT || 5000;
 let db;
 
 mysqlssh.connect(
@@ -517,7 +518,7 @@ app.post('/insertTelefonoNuevo', (req, res) => {
 });
 
 
-http.listen(5000, function () {
+http.listen(PORT, function () {
   console.log('Example app listening on port 5000!');
 });
 
