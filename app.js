@@ -8,7 +8,7 @@ const PORT = process.env.PORT || 5000;
 const cors = require('cors');
 let db;
 
-const allowedOrigins = ["https://callcenter-frontend.herokuapp.com"];
+const allowedOrigins = ["https://asinco.herokuapp.com"];
 
 app.use(
   cors({
