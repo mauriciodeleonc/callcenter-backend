@@ -1,7 +1,7 @@
 const mysqlssh = require('mysql-ssh');
 const readXlsxFile = require('read-excel-file/node');
 const app = require('express')();
-const http = require('https').createServer(app);
+const http = require('http').createServer(app);
 var io = require('socket.io')(http);
 const fetch = require('node-fetch');
 const PORT = process.env.PORT || 5000;
