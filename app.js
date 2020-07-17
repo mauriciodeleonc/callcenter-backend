@@ -162,7 +162,7 @@ app.post('/insertReferencia', (req, res) => {
 
 app.post('/insertCliente', (req,res) => {
   //console.log(`CALL insertCliente(${req.query.idProducto}, '${req.query.nombre}', '${req.query.telCasa}', '${req.query.telCel}')`);
-  db.query(`CALL insertCliente(${req.query.idProducto}, '${req.query.nombre}', '${req.query.telCasa}', '${req.query.telCel}')`, (err, result) => {
+  db.query(`CALL insertCliente(${req.query.idProducto}, '${req.query.nombre}', '${req.query.telCasa}', '${req.query.telCel}', '${req.query.rfc}')`, (err, result) => {
     console.log('result');
     if(err) throw err;
     res.send(result);
@@ -183,7 +183,8 @@ app.post('/insertCredito', (req,res) => {
     ${req.query.total},
     ${req.query.liqActual},
     ${req.query.plazo},
-    '${req.query.ultimoPago}'
+    '${req.query.ultimoPago}',
+    '${req.query.frecuencia}'
   )`);
   db.query(`CALL insertCredito(
       ${req.query.numCredito}, 
@@ -198,7 +199,8 @@ app.post('/insertCredito', (req,res) => {
       ${req.query.total},
       ${req.query.liqActual},
       ${req.query.plazo},
-      '${req.query.ultimoPago}'
+      '${req.query.ultimoPago}',
+      '${req.query.frecuencia}'
     )`, (err, result) => {
     console.log('result');
     if(err) throw err;
@@ -215,7 +217,7 @@ app.post('/insertClienteEjecutivo', (req, res) => {
 });
 
 app.post('/insertDireccion', (req, res) => {
-  db.query(`CALL insertDireccion(${req.query.idCliente}, '${req.query.calle}', '${req.query.colonia}', '${req.query.municipio}', '${req.query.estado}')`, (err, result) => {
+  db.query(`CALL insertDireccion(${req.query.idCliente}, '${req.query.calle}', '${req.query.colonia}', '${req.query.municipio}', '${req.query.estado}', '${req.query.codigoPostal}')`, (err, result) => {
     console.log('result');
     if(err) throw err;
     res.send(result);
