@@ -442,6 +442,7 @@ app.get('/getClienteCredito', async (req, res) => {
         //console.log(cliente);
         //console.log('otro cliente');
         res.send(cliente);
+        console.log(cliente);
       });
       //console.log('ahi va otro');
   })
