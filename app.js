@@ -418,6 +418,8 @@ app.get('/getClienteCredito', async (req, res) => {
     cliente.nombre = info[0][0][0].nombre;
     cliente.telCasa = info[0][0][0].telCasa;
     cliente.telCelular = info[0][0][0].telCelular;
+    cliente.rfc = info[0][0][0].rfc;
+    cliente.frecuencia = info[0][0][0].frecuencia;
   });
   //traer referencias
   const promiseReferencia = db.promise().query(`CALL getReferenciasCredito(${req.query.numCredito})`);
