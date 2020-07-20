@@ -170,22 +170,7 @@ app.post('/insertCliente', (req,res) => {
 });
 
 app.post('/insertCredito', (req,res) => {
-  console.log(`CALL insertCredito(
-    ${req.query.numCredito}, 
-    ${req.query.idCliente}, 
-    ${req.query.estado}, 
-    '${req.query.fechaOtorgado}', 
-    ${req.query.bucketMin}, 
-    ${req.query.bucketMax},
-    ${req.query.cuota},
-    ${req.query.vencido},
-    ${req.query.vencidoCuota},
-    ${req.query.total},
-    ${req.query.liqActual},
-    ${req.query.plazo},
-    '${req.query.ultimoPago}',
-    '${req.query.frecuencia}'
-  )`);
+  console.log(`${req.query}`);
   db.query(`CALL insertCredito(
       ${req.query.numCredito}, 
       ${req.query.idCliente}, 
