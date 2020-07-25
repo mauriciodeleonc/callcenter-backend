@@ -6,9 +6,10 @@ var io = require('socket.io')(http);
 const fetch = require('node-fetch');
 const PORT = process.env.PORT || 5000;
 const cors = require('cors');
+const bodyParser = require('body-parser');
 let db;
 
-const allowedOrigins = ["https://localhost:3000", "https://asinco.herokuapp.com", "http://asinco.herokuapp.com"];
+const allowedOrigins = ["http://localhost:3000", "https://asinco.herokuapp.com", "http://asinco.herokuapp.com"];
 
 app.use(
   cors({
@@ -35,6 +36,12 @@ app.use(function(req, res, next) {
   next();
 });
 
+app.use(bodyParser.json({ limit: "50mb" }));
+app.use(bodyParser.urlencoded({
+  extended: true,
+  limit: "50mb",
+  parameterLimit: 100000
+}));
 
 mysqlssh.connect(
   {
@@ -51,6 +58,7 @@ mysqlssh.connect(
   }
 ).then(client => {
   db = client;
+  console.log('toy conectao');
 }).catch(err => {
   console.log(err);
 });
@@ -536,8 +544,176 @@ app.post('/insertTelefonoNuevo', (req, res) => {
   });
 });
 
+app.post('/subirCartera', async(req, res) => {
+  const idProducto = (await db.promise().query(`CALL insertProducto('${req.body.titulo}')`))[0][0][0].idProducto;
+  res.send({idProducto});
+  let promises = [];
+  const {rows} = req.body;
+  for(let i = 1; i < rows.length; i++){
+
+    let nombreCliente = rows[i][5];
+    if(nombreCliente === null){
+        nombreCliente = 'null';
+    } else  {
+        nombreCliente = nombreCliente.toString();
+    }
+
+    let telCasaCliente = rows[i][20];
+    if(telCasaCliente === null){
+        telCasaCliente = 'null';
+    } else  {
+        telCasaCliente = telCasaCliente.toString();
+    }
+
+    let telCelCliente = rows[i][21];
+    if(telCelCliente === null){
+        telCelCliente = 'null';
+    } else  {
+        telCelCliente = telCelCliente.toString();
+    }
+
+    let rfc = rows[i][42];
+    if(rfc === null){
+        rfc = 'null';
+    } else  {
+        rfc = rfc.toString();
+    }
+
+
+
+    let datosEjecutivo = rows[i][2].toString().toLowerCase();
+    let idCliente;
+
+    const promise = new Promise((resolve, reject) => {
+      const promiseInsertCliente = db.promise().query(`CALL insertCliente(${idProducto}, '${nombreCliente}', '${telCasaCliente}', '${telCelCliente}', '${rfc}')`);
+      promiseInsertCliente.then(result => {
+        idCliente = result[0][0][0].idCliente;
+      
+        //console.log(idCliente);
+        //console.log(datosEjecutivo);
+        return idCliente;
+      }).then(idCliente => {
+        return db.promise().query(`CALL getIdEmpleado('${datosEjecutivo}')`);
+      }).then(result => {
+        
+        let idEjecutivo = result[0][0][0].idEmpleado;
+        return db.promise().query(`CALL insertClienteEjecutivo(${idCliente}, ${idEjecutivo})`);
+      }).then(() => {
+        let calle = rows[i][37].toString();
+        let colonia = rows[i][38].toString();
+        let municipio = rows[i][39].toString();
+        let estado =rows[i][40].toString();
+        let codigoPostal = rows[i][41].toString();
+
+        return db.promise().query(`CALL insertDireccion(${idCliente}, '${calle}', '${colonia}', '${municipio}', '${estado}', '${codigoPostal}')`); 
+      }).then(() => {
+
+        let bucket = rows[i][6];
+        bucket = bucket.split(" ");
+
+        if(bucket[2] === '+') {
+            bucketMin = parseInt(bucket[1]);
+            bucketMax = parseInt('999');
+        } else {
+            bucketMin = parseInt(bucket[1]);
+            bucketMax = parseInt(bucket[3]);
+        }
+
+
+        let fechaOtorgado = rows[i][4];
+        fechaOtorgado = new Date(fechaOtorgado);
+        fechaOtorgado = fechaOtorgado.getFullYear() + "-" + (fechaOtorgado.getMonth() + 1) + "-" + fechaOtorgado.getDate();
+
+        let ultimoPago = rows[i][19];
+        ultimoPago = new Date(ultimoPago);
+        ultimoPago = ultimoPago.getFullYear() + "-" + (ultimoPago.getMonth() + 1) + "-" + ultimoPago.getDate();
+
+        const estados = {
+            'RECADO REF': 1,
+            'NUEVA': 2,
+            'BUZON': 3,
+            'FUERA DE SERVICIO': 4,
+            'NO EXISTE': 5,
+            'NO CONTESTAN': 6,
+            'DEFUNCION': 7,
+            'SIN INFORMACION': 8
+        }
+
+        let numCredito = rows[i][0];
+        let estado = 1;
+        let cuota = rows[i][7];
+        let vencido = rows[i][8]; 
+        let vencidoCuota = rows[i][9];
+        let total = rows[i][10];
+        let liqActual = rows[i][11];
+        let frecuencia = rows[i][12];
+        let plazo = rows[i][16];
+
+        return db.promise().query(`CALL insertCredito(
+          ${numCredito}, 
+          ${idCliente}, 
+          ${estado}, 
+          '${fechaOtorgado}', 
+          ${bucketMin}, 
+          ${bucketMax},
+          ${cuota},
+          ${vencido},
+          ${vencidoCuota},
+          ${total},
+          ${liqActual},
+          ${plazo},
+          '${ultimoPago}',
+          '${frecuencia}'
+        )`);
+      }).then(() => {
+        const promisesReferencias = [];
+        for(let j = 22; j < 37; j++){
+          let nombreReferencia = rows[i][j];
+          if(nombreReferencia === null){
+              nombreReferencia = 'null';
+          } else  {
+              nombreReferencia = nombreReferencia.toString();
+          }
+
+          j++;
+
+          let telCasaReferencia = rows[i][j];
+          if(telCasaReferencia === null){
+              telCasaReferencia = 'null';
+          } else  {
+              telCasaReferencia = telCasaReferencia.toString();
+          }
+
+          j++;
+
+          let telCelReferencia = rows[i][j];
+          if(telCelReferencia === null){
+              telCelReferencia = 'null';
+          } else  {
+              telCelReferencia = telCelReferencia.toString();
+          }
+
+          const promiseReferencia = db.promise().query(`CALL insertReferencia(${idCliente}, '${nombreReferencia}', '${telCasaReferencia}', '${telCelReferencia}')`);
+          promisesReferencias.push(promiseReferencia);
+        }
+        return Promise.all(promisesReferencias);
+      }).then(() => {
+        resolve();
+      });
+    });
+    promises.push(promise);
+  }
+
+  await Promise.all(promises);
+
+  
+});
+
 
 http.listen(PORT, function () {
   console.log('Example app listening on port 5000!');
 });
+
+
+
 
