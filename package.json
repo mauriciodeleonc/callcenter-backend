@@ -15,7 +15,7 @@
     "mysql": "^2.18.1",
     "mysql-ssh": "^1.0.6",
     "node-fetch": "^2.6.0",
-    "read-excel-file": "^4.0.6",
+    "read-excel-file": "^5.5.1",
     "socket.io": "^2.3.0"
   }
 }
